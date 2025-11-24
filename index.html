@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario | Arquitectura de Computadoras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --gray: #6b7280;
+            --light: #f8fafc;
+            --dark: #1e293b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .author-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        header {
+            background: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .subtitle { color: var(--gray); font-size: 1.1rem; }
+
+        .intro, .quiz, .results {
+            padding: 50px 40px;
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hidden { display: none; }
+
+        .name-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 25px 0;
+            transition: all 0.3s;
+        }
+        .name-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+        .btn:hover { 
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .progress-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .circular-progress {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        .circular-progress svg {
+            transform: rotate(-90deg);
+        }
+        .circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 12; }
+        .circle-progress { fill: none; stroke: var(--primary); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+        .progress-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .question {
+            background: white;
+            padding: 28px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s;
+        }
+        .question:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+        .question h3 {
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+        }
+        .options label {
+            display: block;
+            padding: 16px 20px;
+            margin: 10px 0;
+            background: #f8fafc;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .options label:hover {
+            background: #eef2ff;
+            border-color: var(--primary);
+        }
+        .options input[type="radio"] {
+            margin-right: 12px;
+            transform: scale(1.3);
+        }
+        .options input[type="radio"]:checked + span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .results h2 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+            text-align: center;
+        }
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            margin: 30px auto;
+            position: relative;
+        }
+        .result-item {
+            padding: 20px;
+            border-radius: 16px;
+            margin: 15px 0;
+            background: #f8fafc;
+        }
+        .correct { border-left: 6px solid var(--success); background: #ecfdf5 !important; }
+        .incorrect { border-left: 6px solid var(--danger); background: #fef2f2 !important; }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: var(--dark);
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .intro, .quiz, .results { padding: 30px 20px; }
+            .circular-progress, .score-circle { width: 100px; height: 100px; }
+            .progress-text { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="author-header">
+            Elaborado por: Jesús Silva
+        </div>
+
+        <header>
+            <h1>Arquitectura de Computadoras</h1>
+            <p class="subtitle">Evaluación Interactiva • 10 preguntas aleatorias</p>
+        </header>
+
+        <div id="intro" class="intro">
+            <h2 style="text-align:center; margin-bottom:20px;">¡Bienvenido al examen!</h2>
+            <p style="text-align:center; color:var(--gray); margin-bottom:30px;">
+                Ingresa tu nombre para comenzar el cuestionario
+            </p>
+            <input type="text" id="studentName" class="name-input" placeholder="   Escribe tu nombre completo aquí">
+            <div style="text-align:center;">
+                <button class="btn" onclick="startQuiz()">
+                    Iniciar Cuestionario
+                </button>
+            </div>
+        </div>
+
+        <div id="quiz" class="quiz hidden">
+            <div class="progress-container">
+                <div class="circular-progress">
+                    <svg width="120" height="120">
+                        <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+                        <circle class="circle-progress" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                    </svg>
+                    <div class="progress-text">0%</div>
+                </div>
+                <p>Preguntas contestadas: <strong><span id="answered">0</span> de 10</strong></p>
+            </div>
+
+            <div id="questionsContainer"></div>
+
+            <div style="text-align:center; margin-top:40px;">
+                <button class="btn" id="submitBtn" onclick="submitQuiz()" style="display:none;">
+                    Enviar Respuestas
+                </button>
+            </div>
+        </div>
+
+        <div id="results" class="results hidden" style="text-align:center;">
+            <h2>¡Excelente trabajo, <span id="finalName" style="color:var(--primary);"></span>!</h2>
+            
+            <div class="score-circle">
+                <svg width="180" height="180">
+                    <circle class="circle-bg" cx="90" cy="90" r="80"></circle>
+                    <circle id="finalCircle" class="circle-progress" cx="90" cy="90" r="80" stroke-dasharray="502.4" stroke-dashoffset="502.4"></circle>
+                </svg>
+                <div class="progress-text" id="finalScoreText">0/10</div>
+            </div>
+
+            <h3 style="margin:30px 0 20px;">Detalle de respuestas</h3>
+            <div id="detailedResults"></div>
+
+            <button class="btn" onclick="location.reload()" style="margin-top:40px;">
+                Volver a Intentarlo
+            </button>
+        </div>
+    </div>
+
+    <footer>
+        © 2025 Jesús Silva • Cuestionario de Arquitectura de Computadoras
+    </footer>
+
+    <script>
+        // BANCO COMPLETO DE 55 PREGUNTAS (TODAS INCLUIDAS)
+        const questionsBank = [
+            { q: "¿Cuál es la principal función del registro PC (Program Counter)?", options: ["Almacenar datos temporales", "Almacenar la dirección de la próxima instrucción a ejecutar", "Contener el resultado de la ALU", "Guardar el estado de los flags"], correct: 1 },
+            { q: "¿Qué tipo de arquitectura utiliza múltiples núcleos independientes en un solo chip?", options: ["Von Neumann", "Harvard", "Multicore", "RISC-V"], correct: 2 },
+            { q: "¿En qué fase del ciclo de instrucción se decodifica la instrucción?", options: ["Búsqueda (IF)", "Decodificación (ID)", "Ejecución (EX)", "Escritura (WB)"], correct: 1 },
+            { q: "¿Cuál es la principal ventaja de la arquitectura Harvard sobre Von Neumann?", options: ["Menor costo", "Acceso simultáneo a instrucciones y datos", "Mayor velocidad de reloj", "Menor consumo"], correct: 1 },
+            { q: "¿Qué significa el término 'pipeline' en procesadores modernos?", options: ["Memoria caché de alta velocidad", "Ejecución superpuesta de múltiples instrucciones", "Conjunto de registros visibles", "Unidad de coma flotante"], correct: 1 },
+            { q: "¿Qué registro almacena el resultado de las operaciones aritmético-lógicas?", options: ["MAR", "MDR", "IR", "Acumulador (AC o ACC)"], correct: 3 },
+            { q: "¿Cuál es la función principal del bus de control?", options: ["Transportar direcciones", "Transportar datos", "Transportar señales de control entre unidades", "Sincronizar el reloj"], correct: 2 },
+            { q: "¿Qué tipo de memoria es volátil y se pierde al apagar el equipo?", options: ["ROM", "RAM", "Cache L3", "SSD"], correct: 1 },
+            { q: "¿Qué instrucción se usa típicamente para transferir control condicionalmente?", options: ["LOAD", "STORE", "ADD", "Branch (salto condicional)"], correct: 3 },
+            { q: "¿Qué nivel de caché es generalmente el más rápido pero más pequeño?", options: ["L1", "L2", "L3", "RAM principal"], correct: 0 },
+            { q: "¿Qué arquitectura utiliza un conjunto reducido de instrucciones simples?", options: ["CISC", "RISC", "VLIW", "EPIC"], correct: 1 },
+            { q: "¿Cuál es la unidad responsable de operaciones en coma flotante?", options: ["ALU", "FPU (Floating Point Unit)", "MMU", "GPU"], correct: 1 },
+            { q: "¿Qué significa MIPS en el contexto de rendimiento?", options: ["Memory Instructions Per Second", "Millones de Instrucciones Por Segundo", "Maximum Instructions Per Sample", "Multi-Instruction Processing System"], correct: 1 },
+            { q: "¿Qué técnica permite ejecutar instrucciones fuera de orden?", options: ["Predicción de salto", "Ejecución especulativa", "Renombramiento de registros", "Todas las anteriores"], correct: 3 },
+            { q: "¿Qué registro contiene la instrucción actualmente en ejecución?", options: ["PC", "SP", "IR (Instruction Register)", "MAR"], correct: 2 },
+            { q: "¿Qué bus conecta la CPU con la memoria principal?", options: ["Bus local", "Bus de expansión", "Bus de sistema (FSB o similar)", "Bus PCI"], correct: 2 },
+            { q: "¿Cuál es el principal beneficio del superscalar?", options: ["Mayor frecuencia", "Emitir múltiples instrucciones por ciclo", "Menor consumo", "Mayor caché"], correct: 1 },
+            { q: "¿Qué tipo de interrupción tiene la mayor prioridad generalmente?", options: ["Timer", "I/O", "Reset o Power-fail", "Software"], correct: 2 },
+            { q: "¿Qué significa DMA?", options: ["Direct Memory Access", "Acceso Directo a Memoria", "Dynamic Memory Allocation", "Ambas A y B"], correct: 3 },
+            { q: "¿En qué arquitectura todas las instrucciones tienen el mismo tamaño?", options: ["CISC", "RISC clásico", "x86", "IA-64"], correct: 1 },
+            { q: "¿Qué componente traduce direcciones virtuales a físicas?", options: ["TLB", "MMU (Memory Management Unit)", "Cache controller", "Bus arbiter"], correct: 1 },
+            { q: "¿Qué es el 'hazard de datos' en pipeline?", options: ["Fallo de caché", "Dependencia entre instrucciones que causa stalls", "Error de predicción de salto", "Conflicto estructural"], correct: 1 },
+            { q: "¿Qué registro señala la cima de la pila?", options: ["BP", "SP (Stack Pointer)", "IP", "LR"], correct: 1 },
+            { q: "¿Qué técnica reduce los miss de caché trayendo líneas completas?", options: ["Write-through", "Prefetch y carga por línea", "Write-allocate", "Victim cache"], correct: 1 },
+            { q: "¿Qué arquitectura es usada en los procesadores ARM modernos?", options: ["CISC", "RISC", "VLIW", "Stack-based"], correct: 1 },
+            { q: "¿Qué instrucción detiene completamente el procesador hasta una interrupción?", options: ["NOP", "JMP", "HALT o WAIT", "IDLE"], correct: 2 },
+            { q: "¿Qué significa CPI?", options: ["Ciclos Por Instrucción", "Instrucciones Por Ciclo", "Clock Per Instruction", "A y C"], correct: 3 },
+            { q: "¿Qué es el 'branch prediction'?", options: ["Técnica para adivinar el resultado de saltos", "Método de caché", "Sistema de interrupciones", "Registro especial"], correct: 0 },
+            { q: "¿Qué tipo de caché permite lectura y escritura simultánea?", options: ["Unificada", "Harvard (instrucciones y datos separados)", "Write-through", "Direct-mapped"], correct: 1 },
+            { q: "¿Qué registro se usa comúnmente para pasar parámetros en llamadas a función?", options: ["SP", "PC", "Depende del ABI (R0-R3 en ARM, RDI/RSI en x86-64)", "LR"], correct: 2 },
+            { q: "¿Qué es un 'microcode'?", options: ["Código de arranque", "Implementación interna de instrucciones complejas mediante secuencias más simples", "Firmware de BIOS", "Driver de dispositivo"], correct: 1 },
+            { q: "¿Qué unidad gestiona las excepciones y cambios de modo?", options: ["ALU", "FPU", "Controlador de interrupciones/excepciones", "Cache"], correct: 2 },
+            { q: "¿Qué significa 'out-of-order execution'?", options: ["Ejecutar instrucciones en orden diferente al del programa", "Ejecutar solo instrucciones aritméticas", "Saltar instrucciones", "Parar el pipeline"], correct: 0 },
+            { q: "¿Qué es la 'localidad temporal'?", options: ["Datos cercanos en dirección", "Tendencia a reutilizar datos recientemente accedidos", "Acceso secuencial", "Acceso aleatorio"], correct: 1 },
+            { q: "¿Qué arquitectura usa Intel en sus procesadores modernos?", options: ["Pura CISC", "Pura RISC", "CISC con traducción interna a micro-operaciones (similar a RISC)", "VLIW"], correct: 2 },
+            { q: "¿Qué es un 'register renaming'?", options: ["Cambiar nombres de registros", "Técnica para eliminar falsas dependencias eliminando WAR/WAW hazards", "Renombrar archivos", "Cambiar direcciones de memoria"], correct: 1 },
+            { q: "¿Qué significa TLB?", options: ["Translation Lookaside Buffer", "Temporal Loop Buffer", "Transfer Large Block", "Ninguna de las anteriores"], correct: 0 },
+            { q: "¿Qué política de escritura es más rápida pero menos segura?", options: ["Write-through", "Write-back", "Write-allocate", "No-write-allocate"], correct: 1 },
+            { q: "¿Qué es un 'vector de interrupciones'?", options: ["Lista de prioridades", "Tabla que contiene las direcciones de los manejadores de interrupción", "Registro especial", "Pila de interrupciones"], correct: 1 },
+            { q: "¿Qué arquitectura usa instrucciones de longitud variable?", options: ["RISC", "CISC (ej. x86)", "VLIW", "Todas"], correct: 1 },
+            { q: "¿Qué significa SMT?", options: ["Single Memory Threading", "Simultaneous Multi-Threading (Hyper-Threading en Intel)", "Simple Multi-Tasking", "System Memory Transfer"], correct: 1 },
+            { q: "¿Qué componente decide qué instrucción ejecutar a continuación en OoO?", options: ["PC", "ALU", "Reorder Buffer (ROB) + Scheduler", "Cache"], correct: 2 },
+            { q: "¿Qué es el 'clock skew'?", options: ["Frecuencia variable", "Diferencia de llegada del reloj a distintos componentes", "Error de predicción", "Fallo de energía"], correct: 1 },
+            { q: "¿Qué registro guarda la dirección de retorno en una llamada a subrutina?", options: ["PC", "SP", "Link Register (LR) o pila", "BP"], correct: 2 },
+            { q: "¿Qué es un 'cache miss'?", options: ["Datos corruptos", "Cuando los datos solicitados no están en caché", "Escritura fallida", "Lectura lenta"], correct: 1 },
+            { q: "¿Qué técnica usa múltiples bancos de memoria para aumentar ancho de banda?", options: ["Pipelining", "Interleaving (entrelazado)", "Caching", "Prefetching"], correct: 1 },
+            { q: "¿Qué es el 'critical word first'?", options: ["Prioridad de escritura", "Técnica que entrega primero la palabra solicitada en un bloque de caché", "Política de reemplazo", "Predicción"], correct: 1 },
+            { q: "¿Qué arquitectura fue diseñada por John von Neumann?", options: ["Harvard", "Arquitectura Von Neumann", "Dataflow", "Stack"], correct: 1 },
+            { q: "¿Qué significa UMA en memoria compartida?", options: ["Uniform Memory Access", "Uneven Memory Access", "Universal Memory Architecture", "United Memory Array"], correct: 0 },
+            { q: "¿Qué es un 'speculative execution'?", options: ["Ejecutar solo instrucciones seguras", "Ejecutar instrucciones antes de saber si se necesitan", "Parar el pipeline", "Ejecutar en paralelo"], correct: 1 },
+            { q: "¿Qué es un 'data hazard' de tipo RAW?", options: ["Read After Write - dependencia verdadera", "Write After Read", "Write After Write", "Read After Read"], correct: 0 },
+            { q: "¿Qué significa el término 'ILP'?", options: ["Instruction Level Parallelism", "Integrated Logic Processor", "Internal Loop Pipeline", "Instruction Load Pointer"], correct: 0 },
+            { q: "¿Qué es un 'stall' en pipeline?", options: ["Parada temporal del pipeline", "Error de memoria", "Fallo de predicción", "Instrucción nula"], correct: 0 },
+            { q: "¿Qué arquitectura utiliza una pila para las operaciones?", options: ["RISC", "CISC", "Stack machine (como Java JVM)", "VLIW"], correct: 2 },
+            { q: "¿Qué significa 'big-endian' vs 'little-endian'?", options: ["Orden de bits en una palabra", "Orden de bytes en una palabra multi-byte", "Tamaño del bus", "Velocidad del reloj"], correct: 1 }
+        ];
+
+        let selectedQuestions = [];
+        let studentName = "";
+        let currentAnswers = [];
+        let answeredCount = 0;
+
+        function startQuiz() {
+            studentName = document.getElementById("studentName").value.trim();
+            if (!studentName) {
+                alert("Por favor ingresa tu nombre");
+                return;
+            }
+
+            selectedQuestions = [...questionsBank].sort(() => Math.random() - 0.5).slice(0, 10);
+            currentAnswers = new Array(10).fill(null);
+            answeredCount = 0;
+
+            document.getElementById("intro").classList.add("hidden");
+            document.getElementById("quiz").classList.remove("hidden");
+            renderQuestions();
+            updateProgress();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById("questionsContainer");
+            container.innerHTML = "";
+
+            selectedQuestions.forEach((q, i) => {
+                const div = document.createElement("div");
+                div.className = "question";
+                div.innerHTML = `
+                    <h3>${i + 1}. ${q.q}</h3>
+                    <div class="options">
+                        ${q.options.map((opt, j) => `
+                            <label>
+                                <input type="radio" name="q${i}" value="${j}" 
+                                    ${currentAnswers[i] === j ? 'checked' : ''} 
+                                    onchange="saveAnswer(${i}, ${j})">
+                                <span>${opt}</span>
+                            </label>
+                        `).join("")}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function saveAnswer(qIndex, optionIndex) {
+            if (currentAnswers[qIndex] === null) answeredCount++;
+            currentAnswers[qIndex] = optionIndex;
+            updateProgress();
+            document.getElementById("submitBtn").style.display = answeredCount === 10 ? "inline-block" : "none";
+        }
+
+        function updateProgress() {
+            const percent = (answeredCount / 10) * 100;
+            const offset = 339.292 * (1 - percent / 100);
+            document.querySelector(".circle-progress").style.strokeDashoffset = offset;
+            document.querySelector(".progress-text").textContent = percent + "%";
+            document.getElementById("answered").textContent = answeredCount;
+        }
+
+        function submitQuiz() {
+            let correct = 0;
+            const results = [];
+
+            selectedQuestions.forEach((q, i) => {
+                const isCorrect = currentAnswers[i] === q.correct;
+                if (isCorrect) correct++;
+                results.push({ 
+                    correct: isCorrect, 
+                    question: q.q, 
+                    user: q.options[currentAnswers[i]] || "Sin respuesta", 
+                    real: q.options[q.correct] 
+                });
+            });
+
+            // Resultado final con animación
+            const finalPercent = (correct / 10) * 100;
+            const finalOffset = 502.4 * (1 - finalPercent / 100);
+            document.getElementById("finalCircle").style.strokeDashoffset = finalOffset;
+            document.getElementById("finalScoreText").textContent = `${correct}/10`;
+            document.getElementById("finalName").textContent = studentName;
+
+            if (correct >= 7) {
+                confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+            }
+
+            document.getElementById("quiz").classList.add("hidden");
+            document.getElementById("results").classList.remove("hidden");
+
+            const details = document.getElementById("detailedResults");
+            details.innerHTML = "";
+            results.forEach((r, i) => {
+                const div = document.createElement("div");
+                div.className = `result-item ${r.correct ? 'correct' : 'incorrect'}`;
+                div.innerHTML = `
+                    <strong>${i + 1}. ${r.question}</strong><br>
+                    <small>Tú: ${r.user}</small><br>
+                    ${!r.correct ? `<small style="color:var(--danger)"><strong>Correcta: ${r.real}</strong></small>` : ''}
+                `;
+                details.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
